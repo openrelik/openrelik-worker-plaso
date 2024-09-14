@@ -35,6 +35,15 @@ TASK_NAME = "openrelik-worker-plaso.tasks.log2timeline"
 TASK_METADATA = {
     "display_name": "Log2Timeline",
     "description": "Super timelining",
+    "task_config": [
+        {
+            "name": "parsers",
+            "label": "Parsers",
+            "description": "Comma separated list of parsers to use",
+            "type": "text",
+            "required": False,
+        },
+    ],
 }
 
 
@@ -45,7 +54,7 @@ def log2timeline(
     input_files: list = None,
     output_path: str = None,
     workflow_id: str = None,
-    user_config: dict = None,
+    task_config: dict = None,
 ) -> str:
     """Run log2timeline on input files.
 
@@ -54,7 +63,7 @@ def log2timeline(
         input_files: List of input file dictionaries (unused if pipe_result exists).
         output_path: Path to the output directory.
         workflow_id: ID of the workflow.
-        user_config: User configuration for the task (currently unused).
+        task_config: User configuration for the task.
 
     Returns:
         Base64-encoded dictionary containing task results.
@@ -83,11 +92,12 @@ def log2timeline(
         "--storage-file",
         output_file.path,
     ]
-    command_string = " ".join(command[:5])
 
-    # TODO: Add user defined configurations
-    if user_config and user_config.get("parsers"):
-        command.extend(["--parsers", ",".join(user_config["parsers"])])
+    if task_config and task_config.get("parsers"):
+        command.extend(["--parsers", task_config["parsers"]])
+
+    # For task result metadata
+    command_string = " ".join(command)
 
     if len(input_files) > 1:
         # Create temporary directory and hard link files for processing

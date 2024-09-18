@@ -4,7 +4,7 @@ FROM ubuntu:24.04
 # Choose what version of Plaso to use.
 # 20240721 - Use testing becaue Plaso doesn't support Ubuntu 24.04 in stable yet.
 # TODO: Change to stable when version 20240826 is released.
-ARG PPA_TRACK=testing
+ARG PPA_TRACK=staging
 
 # Prevent needing to configure debian packages, stopping the setup of
 # the docker container.
@@ -36,6 +36,11 @@ ENV POETRY_NO_INTERACTION=1 \
 WORKDIR /openrelik
 
 # Copy files needed to build
+# TODO(rbdebeer) split this up in 2 parts to prevent poetry package install on every build 
+#                when only the src has changed (check builds without internet!)
+#     - pyproject.toml/lock and poetry install --no-root
+#     - copy source in
+#     - poetry install to install worker
 COPY . ./
 
 # Enable system-site-packages

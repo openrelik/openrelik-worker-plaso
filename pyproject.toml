@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "openrelik-worker-plaso"
-version = "2024.09.18"
+version = "2024.09.19"
 description = "log2timeline and psort"
 authors = ["Johan Berggren <jberggren@gmail.com>"]
 license = "Apache 2.0"

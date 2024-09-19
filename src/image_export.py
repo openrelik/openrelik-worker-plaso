@@ -130,17 +130,14 @@ def artifact_extract(
     for file in extracted_files:
         # TODO(rbdebeer)
         #   Fix this when mediator supports subfolders of output_path (mediator.py L121)
+        #   and does not assume a file extension from the displayname
         #   and the OutputFile class accepts setting filename (instead of only a random number)
         output_file = create_output_file(output_path=file.parent,
                                          filename=file.name)
-        pdebug(file.absolute())
-        pdebug(file.parent)
-        pdebug(file.name)
-        pdebug(output_file)
-        pdebug(os.path.join(output_path, output_file.filename))
         # TODO(rbdebeer) Remove below hack when fixed
-        os.rename(file.absolute(),
-                  os.path.join(output_path, output_file.filename))
+        _, file_extension = os.path.splitext(file.name)
+        output_filename = f"{output_file.filename}{file_extension}" if file_extension else output_file.filename
+        os.rename(file.absolute(), os.path.join(output_path, output_filename))
 
         output_files.append(output_file.to_dict())
 

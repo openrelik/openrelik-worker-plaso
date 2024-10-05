@@ -14,6 +14,7 @@
 import os
 import subprocess
 import time
+import shutil
 
 from pathlib import Path
 from uuid import uuid4
@@ -118,7 +119,7 @@ def artifact_extract(
 
         output_files.append(output_file.to_dict())
 
-    os.removedirs(export_directory)
+    shutil.rmtree(export_directory)
 
     if not output_files:
         raise RuntimeError("image_export didn't create any output files")

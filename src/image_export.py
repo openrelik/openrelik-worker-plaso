@@ -83,10 +83,8 @@ def artifact_extract(
             output_path,
             file_extension="log",
         )
-        status_file = create_output_file(
-            output_path,
-            file_extension="status",
-        )
+        output_files.append(log_file.to_dict())
+
         export_directory = os.path.join(output_path, uuid4().hex)
         os.mkdir(export_directory)
 
@@ -106,22 +104,14 @@ def artifact_extract(
             task_config["artifacts"],
             input_file.get("path"),
         ]
-
         command_string = " ".join(command[:5])
 
         process = subprocess.Popen(command)
         while process.poll() is None:
-            if not os.path.exists(status_file.path):
-                continue
-            with open(status_file.path, "r") as f:
-                status_dict = {}
-                try:
-                    # TODO(rbdebeer) check output of image_export command
-                    status_dict = log2timeline_status_to_dict(f.read())
-                except:
-                    pass
-                self.send_event("task-progress", data=status_dict)
-            time.sleep(2)
+            # TODO(rbdebeer) - fix and provide standard output as task update
+            self.send_event("task-progress",
+                            data={"status": "stdout of image_export.py"})
+            time.sleep(5)
 
     export_directory_path = Path(export_directory)
     extracted_files = [
@@ -129,9 +119,7 @@ def artifact_extract(
     ]
     for file in extracted_files:
         # TODO(rbdebeer)
-        #   Fix this when mediator supports subfolders of output_path (mediator.py L121)
-        #   and does not assume a file extension from the displayname
-        #   and the OutputFile class accepts setting filename (instead of only a random number)
+        #   Fix this when we support original_path and filename is settable
         output_file = create_output_file(output_path=file.parent,
                                          filename=file.name)
         # TODO(rbdebeer) Remove below hack when fixed

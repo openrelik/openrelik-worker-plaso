@@ -32,9 +32,14 @@ ENV POETRY_NO_INTERACTION=1 \
     POETRY_VIRTUALENVS_CREATE=1 \
     POETRY_CACHE_DIR=/tmp/poetry_cache
 
+# Configure debugging
+ARG OPENRELIK_PYDEBUG
+ENV OPENRELIK_PYDEBUG ${OPENRELIK_PYDEBUG:-0}
+ARG OPENRELIK_PYDEBUG_PORT
+ENV OPENRELIK_PYDEBUG_PORT ${OPENRELIK_PYDEBUG_PORT:-5678}
+
 # Set working directory
 WORKDIR /openrelik
-
 
 # Enable system-site-packages
 RUN poetry config virtualenvs.options.system-site-packages true
@@ -45,12 +50,6 @@ RUN poetry install --no-interaction --no-ansi
 
 # Copy all worker files
 COPY . ./
-
-# Configure debugging
-ARG OPENRELIK_PYDEBUG
-ENV OPENRELIK_PYDEBUG ${OPENRELIK_PYDEBUG:-0}
-ARG OPENRELIK_PYDEBUG_PORT
-ENV OPENRELIK_PYDEBUG_PORT ${OPENRELIK_PYDEBUG_PORT:-5678}
 
 # Install the worker and set environment to use the correct python interpreter.
 RUN poetry install && rm -rf $POETRY_CACHE_DIR

@@ -97,11 +97,11 @@ def artifact_extract(
 
         process = subprocess.Popen(command)
         while process.poll() is None:
-            # TODO(rbdebeer) - fix and provide standard output as task update
-            self.send_event(
-                "task-progress", data={"status": "stdout of image_export.py"}
-            )
-            time.sleep(5)
+            if os.path.isfile(log_file.path):
+                with open(log_file.path, "r", encoding="utf-8") as f:
+                    log_dict = f.read()
+                    self.send_event("task-progress", data=log_dict)
+            time.sleep(2)
 
     if os.path.isfile(log_file.path):
         output_files.append(log_file.to_dict())

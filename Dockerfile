@@ -35,16 +35,22 @@ ENV POETRY_NO_INTERACTION=1 \
 # Set working directory
 WORKDIR /openrelik
 
-# Copy files needed to build
-# TODO(rbdebeer) split this up in 2 parts to prevent poetry package install on every build 
-#                when only the src has changed (check builds without internet!)
-#     - pyproject.toml/lock and poetry install --no-root
-#     - copy source in
-#     - poetry install to install worker
-COPY . ./
 
 # Enable system-site-packages
 RUN poetry config virtualenvs.options.system-site-packages true
+
+# Copy poetry toml and install dependencies
+COPY ./pyproject.toml ./poetry.lock .
+RUN poetry install --no-interaction --no-ansi
+
+# Copy all worker files
+COPY . ./
+
+# Configure debugging
+ARG OPENRELIK_PYDEBUG
+ENV OPENRELIK_PYDEBUG ${OPENRELIK_PYDEBUG:-0}
+ARG OPENRELIK_PYDEBUG_PORT
+ENV OPENRELIK_PYDEBUG_PORT ${OPENRELIK_PYDEBUG_PORT:-5678}
 
 # Install the worker and set environment to use the correct python interpreter.
 RUN poetry install && rm -rf $POETRY_CACHE_DIR

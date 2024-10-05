@@ -25,17 +25,14 @@ from openrelik_worker_common.utils import (
 )
 
 from .app import celery
-from .utils import log2timeline_status_to_dict
 
 # Task name used to register and route the task to the correct queue.
 TASK_NAME = "openrelik-worker-plaso.tasks.artifact_extract"
 
 # Task metadata for registration in the core system.
 TASK_METADATA = {
-    "display_name":
-    "Artifact Extract",
-    "description":
-    "Extract artifacts",
+    "display_name": "Artifact Extract",
+    "description": "Extract artifacts",
     "task_config": [
         {
             "name": "artifacts",
@@ -46,12 +43,6 @@ TASK_METADATA = {
         },
     ],
 }
-
-
-def pdebug(msg):
-    print("DEBUG")
-    print(msg)
-    print("END DEBUG")
 
 
 @celery.task(bind=True, name=TASK_NAME, metadata=TASK_METADATA)
@@ -80,27 +71,25 @@ def artifact_extract(
 
     for input_file in input_files:
         log_file = create_output_file(
-            output_path,
-            file_extension="log",
+            output_path, filename="image_export", file_extension="log"
         )
-        output_files.append(log_file.to_dict())
 
         export_directory = os.path.join(output_path, uuid4().hex)
         os.mkdir(export_directory)
 
         command = [
-            'image_export.py',
-            '--no-hashes',
-            '--logfile',
+            "image_export.py",
+            "--no-hashes",
+            "--logfile",
             log_file.path,
-            '--write',
+            "--write",
             export_directory,
-            '--partitions',
-            'all',
-            '--volumes',
-            'all',
-            '--unattended',
-            '--artifact_filters',
+            "--partitions",
+            "all",
+            "--volumes",
+            "all",
+            "--unattended",
+            "--artifact_filters",
             task_config["artifacts"],
             input_file.get("path"),
         ]
@@ -109,23 +98,23 @@ def artifact_extract(
         process = subprocess.Popen(command)
         while process.poll() is None:
             # TODO(rbdebeer) - fix and provide standard output as task update
-            self.send_event("task-progress",
-                            data={"status": "stdout of image_export.py"})
+            self.send_event(
+                "task-progress", data={"status": "stdout of image_export.py"}
+            )
             time.sleep(5)
 
+    if os.path.isfile(log_file.path):
+        output_files.append(log_file.to_dict())
+
     export_directory_path = Path(export_directory)
-    extracted_files = [
-        f for f in export_directory_path.glob('**/*') if f.is_file()
-    ]
+    extracted_files = [f for f in export_directory_path.glob("**/*") if f.is_file()]
     for file in extracted_files:
-        # TODO(rbdebeer)
-        #   Fix this when we support original_path and filename is settable
-        output_file = create_output_file(output_path=file.parent,
-                                         filename=file.name)
-        # TODO(rbdebeer) Remove below hack when fixed
-        _, file_extension = os.path.splitext(file.name)
-        output_filename = f"{output_file.filename}{file_extension}" if file_extension else output_file.filename
-        os.rename(file.absolute(), os.path.join(output_path, output_filename))
+        original_path = str(file.relative_to(export_directory_path))
+
+        output_file = create_output_file(
+            output_path=output_path, filename=original_path, original_path=original_path
+        )
+        os.rename(file.absolute(), output_file.path)
 
         output_files.append(output_file.to_dict())
 

@@ -27,13 +27,13 @@ files = [
 
 [[package]]
 name = "billiard"
-version = "4.2.0"
+version = "4.2.1"
 description = "Python multiprocessing fork with improvements and bugfixes"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "billiard-4.2.0-py3-none-any.whl", hash = "sha256:07aa978b308f334ff8282bd4a746e681b3513db5c9a514cbdd810cbbdc19714d"},
-    {file = "billiard-4.2.0.tar.gz", hash = "sha256:9a3c3184cb275aa17a732f93f65b20c525d3d9f253722d26a82194803ade5a2c"},
+    {file = "billiard-4.2.1-py3-none-any.whl", hash = "sha256:40b59a4ac8806ba2c2369ea98d876bc6108b051c227baffd928c644d15d8f3cb"},
+    {file = "billiard-4.2.1.tar.gz", hash = "sha256:12b641b0c539073fc8d3f5b8b7be998956665c4233c7c1fcd66a7e677c4fb36f"},
 ]
 
 [[package]]
@@ -169,17 +169,18 @@ files = [
 
 [[package]]
 name = "kombu"
-version = "5.4.1"
+version = "5.4.2"
 description = "Messaging library for Python."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "kombu-5.4.1-py3-none-any.whl", hash = "sha256:621d365f234e4c089596f3a2510f1ade07026efc28caca426161d8f458786cab"},
-    {file = "kombu-5.4.1.tar.gz", hash = "sha256:1c05178826dab811f8cab5b0a154d42a7a33d8bcdde9fa3d7b4582e43c3c03db"},
+    {file = "kombu-5.4.2-py3-none-any.whl", hash = "sha256:14212f5ccf022fc0a70453bb025a1dcc32782a588c49ea866884047d66e14763"},
+    {file = "kombu-5.4.2.tar.gz", hash = "sha256:eef572dd2fd9fc614b37580e3caeafdd5af46c1eff31e7fba89138cdb406f2cf"},
 ]
 
 [package.dependencies]
 amqp = ">=5.1.1,<6.0.0"
+tzdata = {version = "*", markers = "python_version >= \"3.9\""}
 vine = "5.1.0"
 
 [package.extras]
@@ -201,13 +202,13 @@ zookeeper = ["kazoo (>=2.8.0)"]
 
 [[package]]
 name = "openrelik-worker-common"
-version = "2024.9.8"
+version = "2024.9.23"
 description = "Common utilities for OpenRelik workers"
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "openrelik_worker_common-2024.9.8-py3-none-any.whl", hash = "sha256:9356dcd714424e8bd0bc1401502741473cd26a38055c8d76d91e8f7d996ed773"},
-    {file = "openrelik_worker_common-2024.9.8.tar.gz", hash = "sha256:81101afdf65209c7a85e931cf90c0695b60b4f3bca50a27083a61227c1dd0515"},
+    {file = "openrelik_worker_common-2024.9.23-py3-none-any.whl", hash = "sha256:ce94f91e47d1f1a419b0a7262024de662356c58c9bbcbfc404ad2be921ce78e5"},
+    {file = "openrelik_worker_common-2024.9.23.tar.gz", hash = "sha256:791736f73875c5651e644bb996154373399e6dbaf4c4351d30c554aa1335658c"},
 ]
 
 [[package]]
@@ -303,4 +304,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "af8a011c5f5520e62e806a358f8871f648c5dc68d39b273fa1685c5930e26a4c"
+content-hash = "d4c80151be3f50bcc405ecbbd903ad3bf7ec0742dd1a9a790d0e14ddc3275b36"

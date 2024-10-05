@@ -33,10 +33,8 @@ TASK_NAME = "openrelik-worker-plaso.tasks.log2timeline"
 
 # Task metadata for registration in the core system.
 TASK_METADATA = {
-    "display_name":
-    "Log2Timeline",
-    "description":
-    "Super timelining",
+    "display_name": "Log2Timeline",
+    "description": "Super timelining",
     "task_config": [
         {
             "name": "parsers",
@@ -127,8 +125,7 @@ def log2timeline(
     pinfo = pinfo_tool.PinfoTool()
     storage_reader = pinfo._GetStorageReader(output_file.path)
     storage_version = storage_reader.GetFormatVersion()
-    storage_counter = pinfo._CalculateStorageCounters(storage_reader).get(
-        "parsers", {})
+    storage_counter = pinfo._CalculateStorageCounters(storage_reader).get("parsers", {})
 
     if temp_dir:
         if os.path.exists(temp_dir):

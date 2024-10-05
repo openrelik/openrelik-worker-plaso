@@ -17,6 +17,8 @@ import os
 from celery.app import Celery
 
 REDIS_URL = os.getenv("REDIS_URL")
-celery = Celery(broker=REDIS_URL,
-                backend=REDIS_URL,
-                include=["src.log2timeline", "src.psort", "src.image_export"])
+celery = Celery(
+    broker=REDIS_URL,
+    backend=REDIS_URL,
+    include=["src.log2timeline", "src.psort", "src.image_export"],
+)

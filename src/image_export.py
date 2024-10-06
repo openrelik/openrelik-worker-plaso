@@ -69,55 +69,59 @@ def artifact_extract(
     """
     input_files = get_input_files(pipe_result, input_files or [])
     output_files = []
+    artifacts = task_config["artifacts"].split(",")
+    for artifact in artifacts:
+        for input_file in input_files:
+            log_file = create_output_file(
+                output_path, filename=f"image_export_{artifact}", file_extension="log"
+            )
 
-    for input_file in input_files:
-        log_file = create_output_file(
-            output_path, filename="image_export", file_extension="log"
-        )
+            export_directory = os.path.join(output_path, uuid4().hex)
+            os.mkdir(export_directory)
 
-        export_directory = os.path.join(output_path, uuid4().hex)
-        os.mkdir(export_directory)
+            command = [
+                "image_export.py",
+                "--no-hashes",
+                "--logfile",
+                log_file.path,
+                "--write",
+                export_directory,
+                "--partitions",
+                "all",
+                "--volumes",
+                "all",
+                "--unattended",
+                "--artifact_filters",
+                artifact,
+                input_file.get("path"),
+            ]
+            command_string = " ".join(command[:5])
 
-        command = [
-            "image_export.py",
-            "--no-hashes",
-            "--logfile",
-            log_file.path,
-            "--write",
-            export_directory,
-            "--partitions",
-            "all",
-            "--volumes",
-            "all",
-            "--unattended",
-            "--artifact_filters",
-            task_config["artifacts"],
-            input_file.get("path"),
-        ]
-        command_string = " ".join(command[:5])
+            process = subprocess.Popen(command)
+            while process.poll() is None:
+                if os.path.isfile(log_file.path):
+                    with open(log_file.path, "r", encoding="utf-8") as f:
+                        log_dict = f.read()
+                        self.send_event("task-progress", data=log_dict)
+                time.sleep(2)
 
-        process = subprocess.Popen(command)
-        while process.poll() is None:
-            if os.path.isfile(log_file.path):
-                with open(log_file.path, "r", encoding="utf-8") as f:
-                    log_dict = f.read()
-                    self.send_event("task-progress", data=log_dict)
-            time.sleep(2)
+        if os.path.isfile(log_file.path):
+            output_files.append(log_file.to_dict())
 
-    if os.path.isfile(log_file.path):
-        output_files.append(log_file.to_dict())
+        export_directory_path = Path(export_directory)
+        extracted_files = [f for f in export_directory_path.glob("**/*") if f.is_file()]
+        for file in extracted_files:
+            original_path = str(file.relative_to(export_directory_path))
 
-    export_directory_path = Path(export_directory)
-    extracted_files = [f for f in export_directory_path.glob("**/*") if f.is_file()]
-    for file in extracted_files:
-        original_path = str(file.relative_to(export_directory_path))
+            output_file = create_output_file(
+                output_path=output_path,
+                filename=original_path,
+                original_path=original_path,
+                data_type=f"openrelik.worker.artifact.{artifact}",
+            )
+            os.rename(file.absolute(), output_file.path)
 
-        output_file = create_output_file(
-            output_path=output_path, filename=original_path, original_path=original_path
-        )
-        os.rename(file.absolute(), output_file.path)
-
-        output_files.append(output_file.to_dict())
+            output_files.append(output_file.to_dict())
 
     shutil.rmtree(export_directory)
 

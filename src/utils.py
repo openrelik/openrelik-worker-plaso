@@ -11,24 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
-
-
-def setup_debugging(port: int = 5678):
-    """Setup the Python Debugger.
-
-    Args:
-        port: The port to listen on. default 5678
-
-    Returns: None.
-    """
-    import debugpy
-
-    if os.getenv("OPENRELIK_PYDEBUG") == "1":
-        if os.getenv("OPENRELIK_PYDEBUG_PORT"):
-            port = os.getenv("OPENRELIK_PYDEBUG_PORT")
-        print(f"Starting debugpy on {port}\n")
-        debugpy.listen(("0.0.0.0", int(port)))
 
 
 def log2timeline_status_to_dict(status_string: str) -> dict:

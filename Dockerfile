@@ -2,8 +2,6 @@
 FROM ubuntu:24.04
 
 # Choose what version of Plaso to use.
-# 20240721 - Use testing becaue Plaso doesn't support Ubuntu 24.04 in stable yet.
-# TODO: Change to stable when version 20240826 is released.
 ARG PPA_TRACK=stable
 
 # Prevent needing to configure debian packages, stopping the setup of
@@ -32,14 +30,24 @@ ENV POETRY_NO_INTERACTION=1 \
     POETRY_VIRTUALENVS_CREATE=1 \
     POETRY_CACHE_DIR=/tmp/poetry_cache
 
+# Configure debugging
+ARG OPENRELIK_PYDEBUG
+ENV OPENRELIK_PYDEBUG ${OPENRELIK_PYDEBUG:-0}
+ARG OPENRELIK_PYDEBUG_PORT
+ENV OPENRELIK_PYDEBUG_PORT ${OPENRELIK_PYDEBUG_PORT:-5678}
+
 # Set working directory
 WORKDIR /openrelik
 
-# Copy files needed to build
-COPY . ./
-
 # Enable system-site-packages
 RUN poetry config virtualenvs.options.system-site-packages true
+
+# Copy poetry toml and install dependencies
+COPY ./pyproject.toml ./poetry.lock .
+RUN poetry install --no-interaction --no-ansi
+
+# Copy all worker files
+COPY . ./
 
 # Install the worker and set environment to use the correct python interpreter.
 RUN poetry install && rm -rf $POETRY_CACHE_DIR

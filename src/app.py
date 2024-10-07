@@ -16,7 +16,13 @@ import os
 
 from celery.app import Celery
 
+from openrelik_worker_common.setup import setup_debugging
+
+setup_debugging()
+
 REDIS_URL = os.getenv("REDIS_URL")
 celery = Celery(
-    broker=REDIS_URL, backend=REDIS_URL, include=["src.log2timeline", "src.psort"]
+    broker=REDIS_URL,
+    backend=REDIS_URL,
+    include=["src.log2timeline", "src.psort"],
 )

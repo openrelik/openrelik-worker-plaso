@@ -2,9 +2,7 @@
 FROM ubuntu:24.04
 
 # Choose what version of Plaso to use.
-# 20240721 - Use testing becaue Plaso doesn't support Ubuntu 24.04 in stable yet.
-# TODO: Change to stable when version 20240826 is released.
-ARG PPA_TRACK=staging
+ARG PPA_TRACK=stable
 
 # Prevent needing to configure debian packages, stopping the setup of
 # the docker container.

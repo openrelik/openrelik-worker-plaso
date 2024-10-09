@@ -72,13 +72,12 @@ def log2timeline(
     output_files = []
     temp_dir = None
     output_file = create_output_file(
-        output_path,
-        file_extension="plaso",
+        output_path, uuid_as_filename=True, add_extension="plaso"
     )
     status_file = create_output_file(
-        output_path,
-        file_extension="status",
+        output_path, uuid_as_filename=True, add_extension="status"
     )
+
     command = [
         "log2timeline.py",
         "--quiet",

@@ -11,7 +11,6 @@ package-mode = false
 python = "^3.10"
 celery = {extras = ["redis"], version = "^5.4.0"}
 openrelik-worker-common = "^2024.10.10"
-plaso = "^20240826"
 
 [build-system]
 requires = ["poetry-core"]

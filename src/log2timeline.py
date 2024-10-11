@@ -68,7 +68,7 @@ TASK_METADATA = {
             "required": False,
         },
         {
-            "name": "process_archives",
+            "name": "archives",
             "label": "Archives",
             "description": "Select one or more Plaso archive types. Files inside these archive types will be processed.",
             "type": "autocomplete",
@@ -130,8 +130,8 @@ def log2timeline(
     if task_config and task_config.get("parsers"):
         command.extend(["--parsers", ",".join(task_config["parsers"])])
 
-    if task_config and task_config.get("process_archives") == "True":
-        command.extend(["--archives", "all"])
+    if task_config and task_config.get("archives"):
+        command.extend(["--archives", ",".join(task_config["archives"])])
 
     command_string = " ".join(command)
 

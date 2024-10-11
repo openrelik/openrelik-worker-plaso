@@ -24,9 +24,19 @@ from openrelik_worker_common.utils import (
 )
 from plaso import __version__ as plaso_version
 from plaso.cli import pinfo_tool
+from plaso.parsers import manager
 
 from .app import celery
 from .utils import log2timeline_status_to_dict
+
+# Get all Plaso parser names to use for user config form.
+parser_manager = manager.ParsersManager()
+parser_names = {parser for parser, _ in parser_manager.GetParsersInformation()}
+for plugin in parser_manager.GetNamesOfParsersWithPlugins():
+    for parser, _ in parser_manager.GetParserPluginsInformation(
+        parser_filter_expression=plugin
+    ):
+        parser_names.add(f"{plugin}/{parser}")
 
 # Task name used to register and route the task to the correct queue.
 TASK_NAME = "openrelik-worker-plaso.tasks.log2timeline"
@@ -37,10 +47,18 @@ TASK_METADATA = {
     "description": "Super timelining",
     "task_config": [
         {
+            "name": "artifacts",
+            "label": "Select artifacts to parse",
+            "description": "Select one or more forensic artifact definitions from the ForensicArtifacts project. These definitions specify files and data relevant to digital forensic investigations.  Only the selected artifacts will be parsed.",
+            "type": "artifacts",
+            "required": False,
+        },
+        {
             "name": "parsers",
-            "label": "Parsers",
-            "description": "Comma separated list of parsers to use",
-            "type": "text",
+            "label": "Select parsers to use",
+            "description": "Select one or more Plaso parsers. These parsers specify how to interpret files and data. Only data identified by the selected parsers will be processed.",
+            "type": "autocomplete",
+            "items": parser_names,
             "required": False,
         },
         {
@@ -99,10 +117,11 @@ def log2timeline(
         output_file.path,
     ]
 
+    if task_config and task_config.get("artifacts"):
+        command.extend(["--artifact_filters", ",".join(task_config["artifacts"])])
+
     if task_config and task_config.get("parsers"):
-        command.extend(["--parsers", task_config["parsers"]])
-    if task_config and task_config.get("process_archives") == "True":
-        command.extend(["--archives", "all"])
+        command.extend(["--parsers", ",".join(task_config["parsers"])])
 
     # For task result metadata
     command_string = " ".join(command)

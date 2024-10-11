@@ -43,6 +43,13 @@ TASK_METADATA = {
             "type": "text",
             "required": False,
         },
+        {
+            "name": "process_archives",
+            "label": "Archives",
+            "description": "Have log2timeline process files inside archives - True or False",
+            "type": "boolean",
+            "required": False,
+        },
     ],
 }
 
@@ -94,6 +101,8 @@ def log2timeline(
 
     if task_config and task_config.get("parsers"):
         command.extend(["--parsers", task_config["parsers"]])
+    if task_config and task_config.get("process_archives") == "True":
+        command.extend(["--archives", "all"])
 
     # For task result metadata
     command_string = " ".join(command)

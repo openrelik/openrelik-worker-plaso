@@ -24,6 +24,7 @@ from openrelik_worker_common.utils import (
 )
 from plaso import __version__ as plaso_version
 from plaso.cli import pinfo_tool
+from plaso.cli.extraction_tool import ExtractionTool
 from plaso.parsers import manager
 
 from .app import celery
@@ -37,6 +38,11 @@ for plugin in parser_manager.GetNamesOfParsersWithPlugins():
         parser_filter_expression=plugin
     ):
         parser_names.add(f"{plugin}/{parser}")
+
+# Get all Plaso supported archive types for user config form.
+# TODO(rbdebeer) - fix this when public function has been added
+# to plaso.cli.helpers.archives
+archives_names = ExtractionTool._SUPPORTED_ARCHIVE_TYPES
 
 # Task name used to register and route the task to the correct queue.
 TASK_NAME = "openrelik-worker-plaso.tasks.log2timeline"
@@ -64,8 +70,9 @@ TASK_METADATA = {
         {
             "name": "process_archives",
             "label": "Archives",
-            "description": "Have log2timeline process files inside archives - True or False",
-            "type": "boolean",
+            "description": "Select one or more Plaso archive types. Files inside these archive types will be processed.",
+            "type": "autocomplete",
+            "items": archives_names,
             "required": False,
         },
     ],
@@ -123,7 +130,9 @@ def log2timeline(
     if task_config and task_config.get("parsers"):
         command.extend(["--parsers", ",".join(task_config["parsers"])])
 
-    # For task result metadata
+    if task_config and task_config.get("process_archives") == "True":
+        command.extend(["--archives", "all"])
+
     command_string = " ".join(command)
 
     if len(input_files) > 1:

@@ -42,7 +42,7 @@ for plugin in parser_manager.GetNamesOfParsersWithPlugins():
 # Get all Plaso supported archive types for user config form.
 # TODO(rbdebeer) - fix this when public function has been added
 # to plaso.cli.helpers.archives
-archives_names = ExtractionTool._SUPPORTED_ARCHIVE_TYPES
+archive_names = ExtractionTool._SUPPORTED_ARCHIVE_TYPES
 
 # Task name used to register and route the task to the correct queue.
 TASK_NAME = "openrelik-worker-plaso.tasks.log2timeline"
@@ -72,7 +72,7 @@ TASK_METADATA = {
             "label": "Archives",
             "description": "Select one or more Plaso archive types. Files inside these archive types will be processed.",
             "type": "autocomplete",
-            "items": archives_names,
+            "items": archive_names,
             "required": False,
         },
     ],

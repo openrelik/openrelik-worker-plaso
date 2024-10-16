@@ -16,7 +16,7 @@ import os
 
 from celery.app import Celery
 
-from openrelik_worker_common.setup import setup_debugging
+from openrelik_worker_common.debugging import setup_debugging
 
 setup_debugging()
 

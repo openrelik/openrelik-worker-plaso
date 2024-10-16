@@ -60,11 +60,11 @@ def psort(
 
     for input_file in input_files:
         output_file = create_output_file(
-            output_path, filename=f"{input_file.get('uuid')}.csv"
+            output_path,
+            display_name=f"{input_file.get('uuid')}.csv",
+            data_type="openrelik:plaso:psort:csv_timeline",
         )
-        status_file = create_output_file(
-            output_path, uuid_as_filename=True, add_extension="status"
-        )
+        status_file = create_output_file(output_path, extension="status")
 
         command = [
             "psort.py",

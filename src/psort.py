@@ -29,7 +29,7 @@ TASK_NAME = "openrelik-worker-plaso.tasks.psort"
 
 # Task metadata for registration in the core system.
 TASK_METADATA = {
-    "display_name": "Psort CSV",
+    "display_name": "Plaso: Psort CSV",
     "description": "Process Plaso storage files",
 }
 

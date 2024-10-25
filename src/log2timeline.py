@@ -49,7 +49,7 @@ TASK_NAME = "openrelik-worker-plaso.tasks.log2timeline"
 
 # Task metadata for registration in the core system.
 TASK_METADATA = {
-    "display_name": "Log2Timeline",
+    "display_name": "Plaso: Log2Timeline",
     "description": "Super timelining",
     "task_config": [
         {

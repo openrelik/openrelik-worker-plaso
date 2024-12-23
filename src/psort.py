@@ -21,6 +21,11 @@ from openrelik_worker_common.task_utils import create_task_result, get_input_fil
 from .app import celery
 from .utils import log2timeline_status_to_dict
 
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
 # Task name used to register and route the task to the correct queue.
 TASK_NAME = "openrelik-worker-plaso.tasks.psort"
 
@@ -68,6 +73,8 @@ def psort(
             "--quiet",
             "--status-view",
             "file",
+            "--additional_fields",
+            "yara_match",
             "--status-view-file",
             status_file.path,
             "-w",
@@ -76,6 +83,7 @@ def psort(
         ]
         command_string = " ".join(command[:5])
 
+        logging.info(f"Running command: {' '.join(command)}")
         process = subprocess.Popen(command)
         while process.poll() is None:
             if not os.path.exists(status_file.path):

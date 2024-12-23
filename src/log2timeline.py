@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
 import os
 import shutil
 import subprocess
@@ -22,7 +23,6 @@ from openrelik_worker_common.task_utils import (
     create_task_result,
     get_input_files,
 )
-
 from plaso import __version__ as plaso_version
 from plaso.cli import pinfo_tool
 from plaso.cli.extraction_tool import ExtractionTool
@@ -30,6 +30,9 @@ from plaso.parsers import manager
 
 from .app import celery
 from .utils import log2timeline_status_to_dict
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 # Get all Plaso parser names to use for user config form.
 parser_manager = manager.ParsersManager()
@@ -75,6 +78,13 @@ TASK_METADATA = {
             "description": "Select one or more Plaso archive types. Files inside these archive types will be processed.",
             "type": "autocomplete",
             "items": archive_names,
+            "required": False,
+        },
+        {
+            "name": "Yara rules",
+            "label": "Yara rules",
+            "description": "Add Yara rules to tag files with.",
+            "type": "textarea",
             "required": False,
         },
     ],
@@ -135,6 +145,16 @@ def log2timeline(
     if task_config and task_config.get("archives"):
         command.extend(["--archives", ",".join(task_config["archives"])])
 
+    if task_config and task_config.get("Yara rules"):
+        yara_rules_file = create_output_file(
+            output_path,
+            extension="yara",
+            data_type="plaso:log2timeline:yara_rules",
+        )
+        with open(yara_rules_file.path, "w") as f:
+            f.write(task_config["Yara rules"])
+        command.extend(["--yara_rules", yara_rules_file.path])
+
     command_string = " ".join(command)
 
     if len(input_files) > 1:
@@ -149,6 +169,8 @@ def log2timeline(
         command.append(temp_dir)
     else:
         command.append(input_files[0].get("path"))
+
+    logging.info(f"Running command: {' '.join(command)}")
 
     process = subprocess.Popen(command)
     while process.poll() is None:

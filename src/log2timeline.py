@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import logging
 import os
 import shutil
 import subprocess
@@ -31,16 +30,11 @@ from plaso.parsers import manager
 from .app import celery
 from .utils import log2timeline_status_to_dict
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
 # Get all Plaso parser names to use for user config form.
 parser_manager = manager.ParsersManager()
 parser_names = {parser for parser, _ in parser_manager.GetParsersInformation()}
 for plugin in parser_manager.GetNamesOfParsersWithPlugins():
-    for parser, _ in parser_manager.GetParserPluginsInformation(
-        parser_filter_expression=plugin
-    ):
+    for parser, _ in parser_manager.GetParserPluginsInformation(parser_filter_expression=plugin):
         parser_names.add(f"{plugin}/{parser}")
 
 # Get all Plaso supported archive types for user config form.
@@ -54,7 +48,7 @@ TASK_NAME = "openrelik-worker-plaso.tasks.log2timeline"
 
 # Task metadata for registration in the core system.
 TASK_METADATA = {
-    "display_name": "Plaso: Log2Timeline",
+    "display_name": "Plaso Log2Timeline",
     "description": "Super timelining",
     "task_config": [
         {
@@ -115,11 +109,19 @@ def log2timeline(
     input_files = get_input_files(pipe_result, input_files or [])
     output_files = []
     temp_dir = None
-    output_file = create_output_file(
-        output_path,
-        extension="plaso",
-        data_type="plaso:log2timeline:plaso_storage",
-    )
+
+    if len(input_files) == 1:
+        output_file = create_output_file(
+            output_path,
+            display_name=f"{input_files[0].get('display_name')}.plaso",
+            data_type="plaso:log2timeline:plaso_storage",
+        )
+    else:
+        output_file = create_output_file(
+            output_path,
+            extension="plaso",
+            data_type="plaso:log2timeline:plaso_storage",
+        )
     status_file = create_output_file(output_path, extension="status")
 
     command = [
@@ -170,7 +172,8 @@ def log2timeline(
     else:
         command.append(input_files[0].get("path"))
 
-    logging.info(f"Running command: {' '.join(command)}")
+    # Send initial event to indicate task has started
+    self.send_event("task-progress", data={})
 
     process = subprocess.Popen(command)
     while process.poll() is None:
@@ -179,7 +182,7 @@ def log2timeline(
         with open(status_file.path, "r") as f:
             status_dict = log2timeline_status_to_dict(f.read())
             self.send_event("task-progress", data=status_dict)
-        time.sleep(2)
+        time.sleep(3)
 
     # TODO: File feature request in Plaso to get these methods public.
     pinfo = pinfo_tool.PinfoTool()

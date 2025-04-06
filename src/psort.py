@@ -21,17 +21,12 @@ from openrelik_worker_common.task_utils import create_task_result, get_input_fil
 from .app import celery
 from .utils import log2timeline_status_to_dict
 
-import logging
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
 # Task name used to register and route the task to the correct queue.
 TASK_NAME = "openrelik-worker-plaso.tasks.psort"
 
 # Task metadata for registration in the core system.
 TASK_METADATA = {
-    "display_name": "Plaso: Psort CSV",
+    "display_name": "Plaso Psort CSV",
     "description": "Process Plaso storage files",
 }
 
@@ -63,8 +58,8 @@ def psort(
     for input_file in input_files:
         output_file = create_output_file(
             output_path,
-            display_name=f"{input_file.get('uuid')}.csv",
-            data_type="openrelik:plaso:psort:csv_timeline",
+            display_name=f"{input_file.get('display_name')}.csv",
+            data_type="plaso:psort:csv",
         )
         status_file = create_output_file(output_path, extension="status")
 
@@ -83,7 +78,9 @@ def psort(
         ]
         command_string = " ".join(command[:5])
 
-        logging.info(f"Running command: {' '.join(command)}")
+        # Send initial status event to indicate task start
+        self.send_event("task-progress", data={})
+
         process = subprocess.Popen(command)
         while process.poll() is None:
             if not os.path.exists(status_file.path):

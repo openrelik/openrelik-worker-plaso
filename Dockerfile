@@ -43,7 +43,7 @@ WORKDIR /openrelik
 RUN poetry config virtualenvs.options.system-site-packages true
 
 # Copy poetry toml and install dependencies
-COPY ./pyproject.toml ./poetry.lock .
+COPY ./pyproject.toml ./poetry.lock ./
 RUN poetry install --no-interaction --no-ansi
 
 # Copy all worker files

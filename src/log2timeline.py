@@ -130,6 +130,8 @@ def log2timeline(
         "--unattended",
         "--partitions",
         "all",
+        "--volumes",
+        "all",
         "--status-view",
         "file",
         "--status-view-file",

@@ -1,0 +1,12 @@
+# Showcase this worker on https://openrelik.org/marketplace
+publish: true
+
+# Worker Metadata. This section is required.
+display_name: Plaso
+description: Create super timelines from disk images and other data sources.
+
+# Optional: Third-Party Tools Used by the Worker.
+# tools:
+#   - display_name: User-friendly name of the tool
+#     description: Brief description of the tool
+#     url: http://example.com # URL for more info about the tool

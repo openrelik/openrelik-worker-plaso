@@ -1,7 +1,7 @@
 # Use the official Docker Hub Ubuntu base image
 FROM ubuntu:24.04
 
-# Choose what version of Plaso to use.
+# Choose what version of Plaso to use, default is "stable"
 ARG PPA_TRACK=stable
 
 # Prevent needing to configure debian packages, stopping the setup of

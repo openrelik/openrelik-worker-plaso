@@ -81,6 +81,13 @@ TASK_METADATA = {
             "type": "textarea",
             "required": False,
         },
+        {
+            "name": "output_file_name",
+            "label": "Output file name",
+            "description": "Custom name for the output Plaso file (without extension).",
+            "type": "text",
+            "required": False,
+        },
     ],
 }
 
@@ -110,16 +117,30 @@ def log2timeline(
     output_files = []
     temp_dir = None
 
+    # Determine output file name from task_config if provided
+    custom_name = None
+    if task_config and task_config.get("output_file_name"):
+        custom_name = task_config["output_file_name"].strip()
+        if custom_name.endswith(".plaso"):
+            custom_name = custom_name[:-6]
+
     if len(input_files) == 1:
+        display_name = (
+            f"{custom_name}.plaso"
+            if custom_name
+            else f"{input_files[0].get('display_name')}.plaso"
+        )
         output_file = create_output_file(
             output_path,
-            display_name=f"{input_files[0].get('display_name')}.plaso",
+            display_name=display_name,
             data_type="plaso:log2timeline:plaso_storage",
         )
     else:
+        display_name = f"{custom_name}.plaso" if custom_name else None
         output_file = create_output_file(
             output_path,
             extension="plaso",
+            display_name=display_name,
             data_type="plaso:log2timeline:plaso_storage",
         )
     status_file = create_output_file(output_path, extension="status")

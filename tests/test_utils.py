@@ -1,6 +1,6 @@
 import pytest
 
-from utils import is_ewf_files
+from src.utils import is_ewf_files
 
 
 class TestIsEwfFiles:

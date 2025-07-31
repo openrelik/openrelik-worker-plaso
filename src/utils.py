@@ -29,3 +29,25 @@ def log2timeline_status_to_dict(status_string: str) -> dict:
         result_dict["tasks"][name.strip(":").lower()] = int(value)
 
     return result_dict
+
+
+def is_ewf_files(input_files: list[dict]) -> bool:
+    """
+    Checks if all input files have an EnCase Disk Image (EWF) file extension
+    (e.g., .e01, .e02, ..., .e99).
+
+    Args:
+        input_files: A list of dictionaries, where each dictionary represents
+                     an input file and is expected to have a 'path' key.
+
+    Returns:
+        True if all files end with a valid EWF extension, False otherwise.
+    """
+    # Generate a tuple of valid EWF extensions from .e01 to .e99
+    ewf_extensions = tuple(f".e{i:02d}" for i in range(1, 100))
+
+    # Check if all input files end with one of the valid EWF extensions.
+    is_ewf_files = all(
+        input_file.get("path", "").lower().endswith(ewf_extensions) for input_file in input_files
+    )
+    return is_ewf_files

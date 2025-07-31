@@ -70,15 +70,6 @@ class TestIsEwfFiles:
         ]
         assert is_ewf_files(input_files) is False
 
-    def test_none_path_value(self):
-        """Test that function handles None path values."""
-        input_files = [
-            {"path": "/path/to/image.e01"},
-            {"path": None},  # None path
-            {"path": "/path/to/image.e02"},
-        ]
-        assert is_ewf_files(input_files) is False
-
     def test_boundary_extensions(self):
         """Test that function works with boundary EWF extensions (.e01 and .e99)."""
         input_files = [

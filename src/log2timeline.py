@@ -28,7 +28,7 @@ from plaso.cli.extraction_tool import ExtractionTool
 from plaso.parsers import manager
 
 from .app import celery
-from .utils import log2timeline_status_to_dict
+from .utils import is_ewf_files, log2timeline_status_to_dict
 
 # Get all Plaso parser names to use for user config form.
 parser_manager = manager.ParsersManager()
@@ -165,12 +165,28 @@ def log2timeline(
         # Create temporary directory and hard link files for processing
         temp_dir = os.path.join(output_path, uuid4().hex)
         os.mkdir(temp_dir)
-        for input_file in input_files:
-            filename = os.path.basename(input_file.get("path"))
-            os.link(input_file.get("path"), f"{temp_dir}/{filename}")
 
-        # Add the data to be processed
-        command.append(temp_dir)
+        # Create hard links for each input file in the temporary directory
+        # If the files are EWF files, use a base name for the links to preserve the EWF structure.
+        # Note: This only works if all input files are EWF files.
+        if is_ewf_files(input_files):
+            base_name = uuid4().hex
+            for input_file in input_files:
+                original_path = input_file.get("path")
+                original_ext = os.path.splitext(original_path)[1]
+                new_filename = f"{base_name}{original_ext}".lower()
+                link_path = os.path.join(temp_dir, new_filename)
+                os.link(original_path, link_path)
+            # Use the first file's base name to use in Plaso.
+            e01_file = os.path.join(temp_dir, f"{base_name}.e01")
+            if not os.path.exists(e01_file):
+                raise RuntimeError(f"Expected EWF file {e01_file} does not exist.")
+            command.append(e01_file)
+        else:
+            for input_file in input_files:
+                filename = os.path.basename(input_file.get("path"))
+                os.link(input_file.get("path"), f"{temp_dir}/{filename}")
+            command.append(temp_dir)
     else:
         command.append(input_files[0].get("path"))
 

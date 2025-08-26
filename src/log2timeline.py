@@ -16,6 +16,7 @@ import shutil
 import subprocess
 import time
 from uuid import uuid4
+import os
 
 from openrelik_worker_common.file_utils import create_output_file
 from openrelik_worker_common.task_utils import (
@@ -121,28 +122,40 @@ def log2timeline(
     custom_name = None
     if task_config and task_config.get("output_file_name"):
         custom_name = task_config["output_file_name"].strip()
-        if custom_name.endswith(".plaso"):
-            custom_name = custom_name[:-6]
+        # Remove any extension, then add .plaso
+        custom_name = os.path.splitext(custom_name)[0]
+        if not custom_name.lower().endswith(".plaso"):
+            custom_name = f"{custom_name}.plaso"
 
     if len(input_files) == 1:
-        display_name = (
-            f"{custom_name}.plaso"
-            if custom_name
-            else f"{input_files[0].get('display_name')}.plaso"
-        )
-        output_file = create_output_file(
-            output_path,
-            display_name=display_name,
-            data_type="plaso:log2timeline:plaso_storage",
-        )
+        if custom_name:
+            display_name = custom_name
+            output_file = create_output_file(
+                output_path,
+                display_name=display_name,
+                data_type="plaso:log2timeline:plaso_storage",
+            )
+        else:
+            display_name = f"{input_files[0].get('display_name')}"
+            output_file = create_output_file(
+                output_path,
+                display_name=f"{display_name}.plaso",
+                data_type="plaso:log2timeline:plaso_storage",
+            )
     else:
-        display_name = f"{custom_name}.plaso" if custom_name else None
-        output_file = create_output_file(
-            output_path,
-            extension="plaso",
-            display_name=display_name,
-            data_type="plaso:log2timeline:plaso_storage",
-        )
+        if custom_name:
+            display_name = custom_name
+            output_file = create_output_file(
+                output_path,
+                display_name=display_name,
+                data_type="plaso:log2timeline:plaso_storage",
+            )
+        else:
+            output_file = create_output_file(
+                output_path,
+                extension="plaso",
+                data_type="plaso:log2timeline:plaso_storage",
+            )
     status_file = create_output_file(output_path, extension="status")
 
     command = [

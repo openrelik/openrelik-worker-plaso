@@ -16,6 +16,7 @@ import shutil
 import subprocess
 import time
 from uuid import uuid4
+import os
 
 from openrelik_worker_common.file_utils import create_output_file
 from openrelik_worker_common.task_utils import (
@@ -81,6 +82,13 @@ TASK_METADATA = {
             "type": "textarea",
             "required": False,
         },
+        {
+            "name": "output_file_name",
+            "label": "Output file name",
+            "description": "Custom name for the output Plaso file (without .plaso extension).",
+            "type": "text",
+            "required": False,
+        },
     ],
 }
 
@@ -110,18 +118,36 @@ def log2timeline(
     output_files = []
     temp_dir = None
 
+    # Determine display file name from task_config if provided
+    custom_name = None
+    if task_config and task_config.get("output_file_name"):
+        custom_name = task_config["output_file_name"]
+        if not custom_name.lower().endswith(".plaso"):
+            custom_name = f"{custom_name}.plaso"
+
     if len(input_files) == 1:
+        display_name=f"{input_files[0].get('display_name')}.plaso"
+        if custom_name:
+            display_name = custom_name
         output_file = create_output_file(
             output_path,
-            display_name=f"{input_files[0].get('display_name')}.plaso",
+            display_name=display_name,
             data_type="plaso:log2timeline:plaso_storage",
         )
     else:
-        output_file = create_output_file(
-            output_path,
-            extension="plaso",
-            data_type="plaso:log2timeline:plaso_storage",
-        )
+        if custom_name:
+            display_name = custom_name
+            output_file = create_output_file(
+                output_path,
+                display_name=display_name,
+                data_type="plaso:log2timeline:plaso_storage",
+            )
+        else:
+            output_file = create_output_file(
+                output_path,
+                extension="plaso",
+                data_type="plaso:log2timeline:plaso_storage",
+            )
     status_file = create_output_file(output_path, extension="status")
 
     command = [

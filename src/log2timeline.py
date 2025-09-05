@@ -214,9 +214,6 @@ def log2timeline(
 
     output_files.append(output_file.to_dict())
 
-    if not output_files:
-        raise RuntimeError("log2timeline didn't create any output files")
-
     return create_task_result(
         output_files=output_files,
         workflow_id=workflow_id,

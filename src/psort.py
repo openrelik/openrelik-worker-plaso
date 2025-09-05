@@ -54,6 +54,7 @@ def psort(
     """
     input_files = get_input_files(pipe_result, input_files or [])
     output_files = []
+    command_string = ""
 
     for input_file in input_files:
         output_file = create_output_file(
@@ -95,9 +96,6 @@ def psort(
             time.sleep(2)
 
     output_files.append(output_file.to_dict())
-
-    if not output_files:
-        raise RuntimeError("psort didn't create any output files")
 
     return create_task_result(
         output_files=output_files,

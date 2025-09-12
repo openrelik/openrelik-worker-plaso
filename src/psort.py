@@ -98,7 +98,7 @@ def psort(
         # Send initial status event to indicate task start
         self.send_event("task-progress", data={})
 
-        logger.info(f"Starting {command_string}")
+        logger.info(f"Starting {" ".join(command)}")
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         while process.poll() is None:
             if not os.path.exists(status_file.path):

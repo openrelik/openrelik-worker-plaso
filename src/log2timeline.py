@@ -17,6 +17,9 @@ import subprocess
 import time
 from uuid import uuid4
 
+from celery import signals
+from celery.utils.log import get_task_logger
+from openrelik_common.logging import Logger
 from openrelik_worker_common.file_utils import create_output_file
 from openrelik_worker_common.task_utils import (
     create_task_result,
@@ -84,6 +87,16 @@ TASK_METADATA = {
     ],
 }
 
+log_root = Logger()
+logger = log_root.get_logger(__name__, get_task_logger(__name__))
+
+@signals.task_prerun.connect
+def on_task_prerun(sender, task_id, task, args, kwargs, **_):
+    log_root.bind(
+        task_id=task_id,
+        task_name=task.name,
+        worker_name=TASK_METADATA.get("display_name"),
+    )
 
 @celery.task(bind=True, name=TASK_NAME, metadata=TASK_METADATA)
 def log2timeline(
@@ -106,6 +119,9 @@ def log2timeline(
     Returns:
         Base64-encoded dictionary containing task results.
     """
+    log_root.bind(workflow_id=workflow_id)
+    logger.info(f"Starting {TASK_NAME} for workflow {workflow_id}")
+
     input_files = get_input_files(pipe_result, input_files or [])
     output_files = []
     temp_dir = None
@@ -159,8 +175,6 @@ def log2timeline(
             f.write(task_config["Yara rules"])
         command.extend(["--yara_rules", yara_rules_file.path])
 
-    command_string = " ".join(command)
-
     if len(input_files) > 1:
         # Create temporary directory and hard link files for processing
         temp_dir = os.path.join(output_path, uuid4().hex)
@@ -190,10 +204,13 @@ def log2timeline(
     else:
         command.append(input_files[0].get("path"))
 
+    command_string = " ".join(command)
+
     # Send initial event to indicate task has started
     self.send_event("task-progress", data={})
 
-    process = subprocess.Popen(command)
+    logger.info(f"Starting {command_string}")
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     while process.poll() is None:
         if not os.path.exists(status_file.path):
             continue
@@ -201,6 +218,9 @@ def log2timeline(
             status_dict = log2timeline_status_to_dict(f.read())
             self.send_event("task-progress", data=status_dict)
         time.sleep(3)
+    logger.info(process.stdout.read())
+    if process.stderr:
+        logger.info(process.stderr.read())
 
     # TODO: File feature request in Plaso to get these methods public.
     pinfo = pinfo_tool.PinfoTool()

@@ -220,7 +220,7 @@ def log2timeline(
         time.sleep(3)
     logger.info(process.stdout.read())
     if process.stderr:
-        logger.info(process.stderr.read())
+        logger.error(process.stderr.read())
 
     # TODO: File feature request in Plaso to get these methods public.
     pinfo = pinfo_tool.PinfoTool()

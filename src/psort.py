@@ -113,7 +113,7 @@ def psort(
             time.sleep(2)
         logger.info(process.stdout.read())
         if process.stderr:
-            logger.info(process.stderr.read())
+            logger.error(process.stderr.read())
 
     output_files.append(output_file.to_dict())
 

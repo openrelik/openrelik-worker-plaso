@@ -26,4 +26,7 @@ celery = Celery(
     broker=REDIS_URL,
     backend=REDIS_URL,
     include=["src.log2timeline", "src.psort"],
+    worker_hijack_root_logger=False, # Disable Celery hijacking configured Python loggers.
+    worker_log_format="%(message)s",
+    worker_task_log_format="%(message)s",
 )

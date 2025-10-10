@@ -20,6 +20,7 @@ from uuid import uuid4
 from celery import signals
 from celery.utils.log import get_task_logger
 from openrelik_common.logging import Logger
+from openrelik_worker_common.archive_utils import extract_archive
 from openrelik_worker_common.file_utils import create_output_file
 from openrelik_worker_common.task_utils import (
     create_task_result,
@@ -83,6 +84,12 @@ TASK_METADATA = {
             "description": "Add Yara rules to tag files with.",
             "type": "textarea",
             "required": False,
+        },
+        {
+            "name": "extract-single-zip",
+            "label": "Extract single ZIP input",
+            "description": "Select if single ZIP input should be extracted (slow $MFT parsing workaround)",
+            "type": "checkbox",
         },
     ],
 }
@@ -201,6 +208,26 @@ def log2timeline(
                 filename = os.path.basename(input_file.get("path"))
                 os.link(input_file.get("path"), f"{temp_dir}/{filename}")
             command.append(temp_dir)
+
+    # Handle extraction of single ZIP input before launching log2timeline.py (slow $MFT parsing workaround)
+    elif input_files[0].get("path") and input_files[0].get("path").lower().endswith(".zip") and task_config and task_config.get("extract-single-zip") is True:
+        logger.info(f"Extracting {input_files[0].get('path')}")
+        log_file = create_output_file(
+            output_path,
+            display_name=f"extract_archives_{input_files[0].get('display_name')}.log",
+        )
+
+        try:
+            (command_string, temp_dir) = extract_archive(
+                input_files[0], output_path, log_file.path
+            )
+        except Exception as e:
+            logger.error(f"extract_archive failed: {e}")
+            raise
+
+        logger.info(f"Executed extract_archive command: {command_string}")
+        command.append(temp_dir)
+
     else:
         command.append(input_files[0].get("path"))
 

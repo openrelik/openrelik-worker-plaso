@@ -76,6 +76,11 @@ def psort(
         ]
         command_string = " ".join(command[:5])
 
+        telemetry.add_attribute_to_current_span("input_file", input_file)
+        telemetry.add_attribute_to_current_span("task_config", task_config)
+        telemetry.add_attribute_to_current_span("command_string", command_string)
+        telemetry.add_attribute_to_current_span("workflow_id", workflow_id)
+
         process = subprocess.Popen(command)
         while process.poll() is None:
             if not os.path.exists(status_file.path):

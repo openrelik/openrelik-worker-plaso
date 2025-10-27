@@ -17,6 +17,7 @@ import subprocess
 import time
 from uuid import uuid4
 
+from openrelik_common import telemetry
 from openrelik_worker_common.file_utils import create_output_file
 from openrelik_worker_common.task_utils import (
     create_task_result,
@@ -137,6 +138,10 @@ def log2timeline(
 
     command_string = " ".join(command)
 
+    telemetry.add_attribute_to_current_span("input_files", input_files)
+    telemetry.add_attribute_to_current_span("task_config", task_config)
+    telemetry.add_attribute_to_current_span("workflow_id", workflow_id)
+
     if len(input_files) > 1:
         # Create temporary directory and hard link files for processing
         temp_dir = os.path.join(output_path, uuid4().hex)
@@ -149,6 +154,8 @@ def log2timeline(
         command.append(temp_dir)
     else:
         command.append(input_files[0].get("path"))
+
+    telemetry.add_attribute_to_current_span("command_string", command_string)
 
     process = subprocess.Popen(command)
     while process.poll() is None:

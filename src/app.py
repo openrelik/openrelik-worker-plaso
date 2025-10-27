@@ -16,7 +16,10 @@ import os
 
 from celery.app import Celery
 
+from openrelik_common import telemetry
 from openrelik_worker_common.debug_utils import start_debugger
+
+telemetry.setup_telemetry('openrelik-worker-analyzer-config')
 
 if os.getenv("OPENRELIK_PYDEBUG") == "1":
     start_debugger()
@@ -30,3 +33,5 @@ celery = Celery(
     worker_log_format="%(message)s",
     worker_task_log_format="%(message)s",
 )
+
+telemetry.instrument_celery_app(celery)

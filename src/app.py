@@ -19,7 +19,7 @@ from celery.app import Celery
 from openrelik_common import telemetry
 from openrelik_worker_common.debug_utils import start_debugger
 
-telemetry.setup_telemetry('openrelik-worker-analyzer-config')
+telemetry.setup_telemetry('openrelik-worker-plaso')
 
 if os.getenv("OPENRELIK_PYDEBUG") == "1":
     start_debugger()

@@ -95,8 +95,8 @@ def psort(
     output_format = "l2tcsv"
     output_extension = "csv"
     if task_config and task_config.get("output_format"):
-        output_format = task_config["output_format"][0]
-        output_extension = task_config["output_format"][0]
+        output_format = task_config["output_format"]
+        output_extension = task_config["output_format"]
         
     for input_file in input_files:
         output_file = create_output_file(

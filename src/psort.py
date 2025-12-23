@@ -21,9 +21,13 @@ from openrelik_common import telemetry
 from openrelik_common.logging import Logger
 from openrelik_worker_common.file_utils import create_output_file
 from openrelik_worker_common.task_utils import create_task_result, get_input_files
+from plaso.output import manager as output_manager
 
 from .app import celery
 from .utils import log2timeline_status_to_dict
+
+# Get the supported psort output formats.
+output_formats_available  = {name for name,_ in output_manager.OutputManager.GetOutputClasses()}
 
 # Task name used to register and route the task to the correct queue.
 TASK_NAME = "openrelik-worker-plaso.tasks.psort"
@@ -32,6 +36,16 @@ TASK_NAME = "openrelik-worker-plaso.tasks.psort"
 TASK_METADATA = {
     "display_name": "Plaso Psort CSV",
     "description": "Process Plaso storage files",
+    "task_config": [
+        {
+            "name": "output_format",
+            "label": "Select output format to use",
+            "description": "Select the output format for psort, default will be csv.",
+            "type": "autocomplete",
+            "items": output_formats_available,
+            "required": False,
+        },
+    ]
 }
 
 log_root = Logger()
@@ -77,11 +91,18 @@ def psort(
     telemetry.add_attribute_to_current_span("task_config", task_config)
     telemetry.add_attribute_to_current_span("workflow_id", workflow_id)
 
+    # Get chosen task config output format, default is csv
+    output_format = "l2tcsv"
+    output_extension = "csv"
+    if task_config and task_config.get("output_format"):
+        output_format = task_config["output_format"][0]
+        output_extension = task_config["output_format"][0]
+        
     for input_file in input_files:
         output_file = create_output_file(
             output_path,
-            display_name=f"{input_file.get('display_name')}.csv",
-            data_type="plaso:psort:csv",
+            display_name=f"{input_file.get('display_name')}.{output_extension}",
+            data_type=f"plaso:psort:{output_extension}",
         )
         status_file = create_output_file(output_path, extension="status")
 
@@ -92,6 +113,8 @@ def psort(
             "file",
             "--additional_fields",
             "yara_match",
+            "-o",
+            output_format,
             "--status-view-file",
             status_file.path,
             "-w",

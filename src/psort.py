@@ -34,15 +34,15 @@ TASK_NAME = "openrelik-worker-plaso.tasks.psort"
 
 # Task metadata for registration in the core system.
 TASK_METADATA = {
-    "display_name": "Plaso Psort CSV",
+    "display_name": "Plaso Psort",
     "description": "Process Plaso storage files",
     "task_config": [
         {
             "name": "output_format",
             "label": "Select output format to use",
             "description": "Select the output format for psort, default will be csv.",
-            "type": "autocomplete",
-            "items": output_formats_available,
+            "type": "select",
+            "items": sorted(output_formats_available),
             "required": False,
         },
     ]

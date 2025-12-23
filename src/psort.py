@@ -91,11 +91,9 @@ def psort(
     telemetry.add_attribute_to_current_span("task_config", task_config)
     telemetry.add_attribute_to_current_span("workflow_id", workflow_id)
 
-    # Get chosen task config output format, default is csv
-    output_format = "l2tcsv"
+    # Set output extensions based on chosen task config output format, default is csv
     output_extension = "csv"
     if task_config and task_config.get("output_format"):
-        output_format = task_config["output_format"]
         output_extension = task_config["output_format"]
         
     for input_file in input_files:
@@ -113,15 +111,16 @@ def psort(
             "file",
             "--additional_fields",
             "yara_match",
-            "-o",
-            output_format,
             "--status-view-file",
             status_file.path,
             "-w",
             output_file.path,
-            input_file.get("path"),
         ]
-        command_string = " ".join(command[:5])
+        if task_config and task_config.get("output_format"):
+            command.extend(["-o", task_config["output_format"]])
+        command.append(input_file.get("path"))
+
+        command_string = " ".join(command)
 
         # Send initial status event to indicate task start
         self.send_event("task-progress", data={})

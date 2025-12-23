@@ -14,6 +14,7 @@
 import os
 import shutil
 import subprocess
+import tempfile
 import time
 from uuid import uuid4
 
@@ -141,6 +142,9 @@ def log2timeline(
         )
     status_file = create_output_file(output_path, extension="status")
 
+    # Create temporary file for plaso storage (to prevent performance bottlenecks when using NFS)
+    temp_plaso_file = tempfile.NamedTemporaryFile()
+
     command = [
         "log2timeline.py",
         "--quiet",
@@ -154,7 +158,7 @@ def log2timeline(
         "--status-view-file",
         status_file.path,
         "--storage-file",
-        output_file.path,
+        temp_plaso_file.name,
     ]
 
     if task_config and task_config.get("artifacts"):
@@ -229,9 +233,16 @@ def log2timeline(
 
     # TODO: File feature request in Plaso to get these methods public.
     pinfo = pinfo_tool.PinfoTool()
-    storage_reader = pinfo._GetStorageReader(output_file.path)
+    storage_reader = pinfo._GetStorageReader(temp_plaso_file.name)
     storage_version = storage_reader.GetFormatVersion()
     storage_counter = pinfo._CalculateStorageCounters(storage_reader).get("parsers", {})
+
+    # Copy temporary Plaso storage file to final output location
+    temp_plaso_file.seek(0)
+    with open(output_file.path, "wb") as out_f:
+        shutil.copyfileobj(temp_plaso_file, out_f)
+    # Close temporary file (this will also delete it)
+    temp_plaso_file.close()
 
     if temp_dir:
         if os.path.exists(temp_dir):

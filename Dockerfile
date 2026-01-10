@@ -10,6 +10,7 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
 
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
     software-properties-common \
     python3-pip \
     python3-poetry \
@@ -24,12 +25,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     plaso-tools \
   && rm -rf /var/lib/apt/lists/*
 
-# Configure poetry
-ENV POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=1 \
-    POETRY_VIRTUALENVS_CREATE=1 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache
-
 # Configure debugging
 ARG OPENRELIK_PYDEBUG
 ENV OPENRELIK_PYDEBUG=${OPENRELIK_PYDEBUG:-0}
@@ -39,19 +34,26 @@ ENV OPENRELIK_PYDEBUG_PORT=${OPENRELIK_PYDEBUG_PORT:-5678}
 # Set working directory
 WORKDIR /openrelik
 
-# Enable system-site-packages
-RUN poetry config virtualenvs.options.system-site-packages true
+# Install the latest uv binaries
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Copy poetry toml and install dependencies
-COPY ./pyproject.toml ./poetry.lock ./
-RUN poetry install --no-interaction --no-ansi
+# Copy poetry toml and uv.lock
+COPY uv.lock pyproject.toml .
+
+# Use the system Python environment as plaso is installed through apt
+ENV UV_PROJECT_ENVIRONMENT="/usr"
+
+# Install the project's dependencies using the lockfile and settings
+RUN uv sync --locked --no-install-project --no-dev
 
 # Copy all worker files
 COPY . ./
 
-# Install the worker and set environment to use the correct python interpreter.
-RUN poetry install && rm -rf $POETRY_CACHE_DIR
-ENV VIRTUAL_ENV=/app/.venv PATH="/openrelik/.venv/bin:$PATH"
+# Installing separately from its dependencies allows optimal layer caching
+RUN uv sync --locked --no-dev
+
+# Set PATH to use the virtual environment
+ENV PATH="/openrelik/.venv/bin:$PATH"
 
 # Default command if not run from docker-compose (and command being overridden)
 CMD ["celery", "--app=src.tasks", "worker", "--task-events", "--concurrency=1", "--loglevel=INFO"]

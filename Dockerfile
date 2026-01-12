@@ -38,7 +38,7 @@ WORKDIR /openrelik
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 # Copy poetry toml and uv.lock
-COPY uv.lock pyproject.toml .
+COPY uv.lock pyproject.toml ./
 
 # Use the system Python environment as plaso is installed through apt
 ENV UV_PROJECT_ENVIRONMENT="/usr"

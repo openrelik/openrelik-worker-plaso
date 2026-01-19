@@ -413,7 +413,7 @@ wheels = [
 
 [[package]]
 name = "google-cloud-trace"
-version = "1.17.0"
+version = "1.18.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "google-api-core", extra = ["grpc"] },
@@ -422,9 +422,9 @@ dependencies = [
     { name = "proto-plus" },
     { name = "protobuf" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5e/89/5ecbcf7d2d37ead01fc84e774bc758638855c630b32720fa58edcf9667ae/google_cloud_trace-1.17.0.tar.gz", hash = "sha256:68703bfc93718083f061d9130a3852e3181ec1b6b796b76856997c28f51b9595", size = 97995, upload-time = "2025-10-20T14:57:28.662Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/02/34/b1883f4682f1681941100df0e411cb0185013f7c349489ab1330348d7c5c/google_cloud_trace-1.18.0.tar.gz", hash = "sha256:46d42b90273da3bc4850bb0d6b9a205eb826a54561ff1b30ca33cc92174c3f37", size = 103347, upload-time = "2026-01-15T13:04:56.441Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c9/84/e6b776f0b5d68451be68d3d43efe8eacc677182709dd7e84c960668a9909/google_cloud_trace-1.17.0-py3-none-any.whl", hash = "sha256:975dc0c2a9b1d7644bca45d78a2c5011ab5c73e94bd6537203deda374f88f7b3", size = 104118, upload-time = "2025-10-20T14:55:23.108Z" },
+    { url = "https://files.pythonhosted.org/packages/87/15/366fd8b028a50a9018c933270d220a4e53dca8022ce9086618b72978ab90/google_cloud_trace-1.18.0-py3-none-any.whl", hash = "sha256:52c002d8d3da802e031fee62cd49a1baf899932d4f548a150f685af6815b5554", size = 107488, upload-time = "2026-01-15T12:17:21.519Z" },
 ]
 
 [[package]]
@@ -556,7 +556,7 @@ redis = [
 
 [[package]]
 name = "openrelik-common"
-version = "0.7.3"
+version = "0.7.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "billiard" },
@@ -568,9 +568,9 @@ dependencies = [
     { name = "opentelemetry-instrumentation-fastapi" },
     { name = "structlog" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f7/ee/e281ce640714e20cb9d730eee65addeb0762ad37b74c82ca79d729bf40a4/openrelik_common-0.7.3.tar.gz", hash = "sha256:6115ea4cdf7dfb98e3d717472c8cf156d2c18103e047b59584de158a06f58454", size = 8199, upload-time = "2026-01-14T16:19:45.611Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/84/b7/81ff1b1fc751670bace3c3467cb6a4e0e307fe22b65b0d749e44e6d94cdb/openrelik_common-0.7.4.tar.gz", hash = "sha256:c671a1d7e15b1f76b5a372f511208387210f25269a9cc7c7c4adbff5b9a42035", size = 8468, upload-time = "2026-01-19T14:28:13.039Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ff/39/c9f9396fbf5898b4642b0cb67ee58bb701985252c5eb8e70c6b0ed36a07c/openrelik_common-0.7.3-py3-none-any.whl", hash = "sha256:3a4f3b2fc6b86ddc8652ecb4a675a41ce1498450c9c4e4f8d413e30fa2080885", size = 9481, upload-time = "2026-01-14T16:19:44.653Z" },
+    { url = "https://files.pythonhosted.org/packages/1d/d5/c142cc575b32bd2c87c277568e09b750baf424957a3b7279f9278db75835/openrelik_common-0.7.4-py3-none-any.whl", hash = "sha256:66fe876b2cea8aafd625f87a44decf8d6d8b2932f0c30951de7e40784e2cf739", size = 9765, upload-time = "2026-01-19T14:28:11.951Z" },
 ]
 
 [[package]]

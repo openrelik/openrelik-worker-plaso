@@ -23,6 +23,7 @@ jobs:
       - name: Create pull request
         uses: peter-evans/create-pull-request@v7
         with:
+          committer: hacktobeer <ramsesdebeer@gmail.com>
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: Update uv lockfile
           title: Update uv lockfile

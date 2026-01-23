@@ -1,6 +1,8 @@
+import logging
 import pytest
+from unittest.mock import MagicMock, call
 
-from src.utils import is_ewf_files
+from src.utils import is_ewf_files, process_plaso_cli_logs
 
 
 class TestIsEwfFiles:
@@ -106,3 +108,50 @@ class TestIsEwfFiles:
         """Test that function returns False for various invalid extensions."""
         input_files = [{"path": f"/path/to/image{extension}"}]
         assert is_ewf_files(input_files) is False
+
+
+class TestProcessPlasoCliLogs:
+    def test_process_plaso_cli_logs_basic(self):
+        """Test standard single-line log parsing."""
+        mock_logger = MagicMock()
+        logs = "[INFO] Starting process\n[WARNING] Low disk space"
+
+        process_plaso_cli_logs(logs, mock_logger)
+
+        expected_calls = [
+            call(logging.INFO, "Starting process"),
+            call(logging.WARNING, "Low disk space"),
+        ]
+        mock_logger.log.assert_has_calls(expected_calls)
+
+    def test_process_plaso_cli_logs_multiline_continuation(self):
+        """Test that lines without a header use the previous level."""
+        mock_logger = MagicMock()
+        logs = "[ERROR] Database failure\n  at line 50\n  at line 52"
+
+        process_plaso_cli_logs(logs, mock_logger)
+
+        expected_calls = [
+            call(logging.ERROR, "Database failure"),
+            call(logging.ERROR, "  at line 50"),
+            call(logging.ERROR, "  at line 52"),
+        ]
+        mock_logger.log.assert_has_calls(expected_calls)
+
+    def test_process_plaso_cli_logs_unknown_level(self):
+        """Test fallback to default level when header is unrecognized."""
+        mock_logger = MagicMock()
+        logs = "[UNKNOWNEVEL] This should be info"
+
+        process_plaso_cli_logs(logs, mock_logger)
+
+        mock_logger.log.assert_called_once_with(logging.INFO, "This should be info")
+
+    def test_process_plaso_cli_logs_empty_input(self):
+        """Test that empty lines are skipped."""
+        mock_logger = MagicMock()
+        logs = "\n\n  \n"
+
+        process_plaso_cli_logs(logs, mock_logger)
+
+        mock_logger.log.assert_not_called()

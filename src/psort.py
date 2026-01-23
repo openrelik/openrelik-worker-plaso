@@ -24,10 +24,12 @@ from openrelik_worker_common.task_utils import create_task_result, get_input_fil
 from plaso.output import manager as output_manager
 
 from .app import celery
-from .utils import log2timeline_status_to_dict
+from .utils import log2timeline_status_to_dict, process_plaso_cli_logs
 
 # Get the supported psort output formats.
-output_formats_available  = {name for name,_ in output_manager.OutputManager.GetOutputClasses()}
+output_formats_available = {
+    name for name, _ in output_manager.OutputManager.GetOutputClasses()
+}
 
 # Task name used to register and route the task to the correct queue.
 TASK_NAME = "openrelik-worker-plaso.tasks.psort"
@@ -45,11 +47,12 @@ TASK_METADATA = {
             "items": sorted(output_formats_available),
             "required": False,
         },
-    ]
+    ],
 }
 
 log_root = Logger()
 logger = log_root.get_logger(__name__, get_task_logger(__name__))
+
 
 @signals.task_prerun.connect
 def on_task_prerun(sender, task_id, task, args, kwargs, **_):
@@ -58,6 +61,7 @@ def on_task_prerun(sender, task_id, task, args, kwargs, **_):
         task_name=task.name,
         worker_name=TASK_METADATA.get("display_name"),
     )
+
 
 @celery.task(bind=True, name=TASK_NAME, metadata=TASK_METADATA)
 def psort(
@@ -95,7 +99,7 @@ def psort(
     output_extension = "csv"
     if task_config and task_config.get("output_format"):
         output_extension = task_config["output_format"]
-        
+
     for input_file in input_files:
         output_file = create_output_file(
             output_path,
@@ -125,8 +129,10 @@ def psort(
         # Send initial status event to indicate task start
         self.send_event("task-progress", data={})
 
-        logger.info(f"Starting {" ".join(command)}")
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        logger.info(f"Starting {' '.join(command)}")
+        process = subprocess.Popen(
+            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         while process.poll() is None:
             if not os.path.exists(status_file.path):
                 continue
@@ -140,7 +146,7 @@ def psort(
             time.sleep(2)
         logger.info(process.stdout.read())
         if process.stderr:
-            logger.error(process.stderr.read())
+            process_plaso_cli_logs(process.stderr.read(), logger)
 
     output_files.append(output_file.to_dict())
 

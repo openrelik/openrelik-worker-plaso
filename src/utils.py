@@ -13,7 +13,6 @@
 # limitations under the License.
 import logging
 import re
-import subprocess
 
 
 def log2timeline_status_to_dict(status_string: str) -> dict:

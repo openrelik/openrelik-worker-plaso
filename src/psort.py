@@ -131,7 +131,11 @@ def psort(
 
         logger.info(f"Starting {' '.join(command)}")
         process = subprocess.Popen(
-            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1,
         )
         while process.poll() is None:
             if not os.path.exists(status_file.path):

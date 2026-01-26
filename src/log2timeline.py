@@ -33,13 +33,15 @@ from plaso.cli.extraction_tool import ExtractionTool
 from plaso.parsers import manager
 
 from .app import celery
-from .utils import is_ewf_files, log2timeline_status_to_dict
+from .utils import is_ewf_files, log2timeline_status_to_dict, process_plaso_cli_logs
 
 # Get all Plaso parser names to use for user config form.
 parser_manager = manager.ParsersManager()
 parser_names = {parser for parser, _ in parser_manager.GetParsersInformation()}
 for plugin in parser_manager.GetNamesOfParsersWithPlugins():
-    for parser, _ in parser_manager.GetParserPluginsInformation(parser_filter_expression=plugin):
+    for parser, _ in parser_manager.GetParserPluginsInformation(
+        parser_filter_expression=plugin
+    ):
         parser_names.add(f"{plugin}/{parser}")
 
 # Get all Plaso supported archive types for user config form.
@@ -92,6 +94,7 @@ TASK_METADATA = {
 log_root = Logger()
 logger = log_root.get_logger(__name__, get_task_logger(__name__))
 
+
 @signals.task_prerun.connect
 def on_task_prerun(sender, task_id, task, args, kwargs, **_):
     log_root.bind(
@@ -99,6 +102,7 @@ def on_task_prerun(sender, task_id, task, args, kwargs, **_):
         task_name=task.name,
         worker_name=TASK_METADATA.get("display_name"),
     )
+
 
 @celery.task(bind=True, name=TASK_NAME, metadata=TASK_METADATA)
 def log2timeline(
@@ -219,7 +223,9 @@ def log2timeline(
     self.send_event("task-progress", data={})
 
     logger.info(f"Starting {command_string}")
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(
+        command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1
+    )
     while process.poll() is None:
         if not os.path.exists(status_file.path):
             continue
@@ -229,7 +235,7 @@ def log2timeline(
         time.sleep(3)
     logger.info(process.stdout.read())
     if process.stderr:
-        logger.error(process.stderr.read())
+        process_plaso_cli_logs(process.stderr.read(), logger)
 
     # TODO: File feature request in Plaso to get these methods public.
     pinfo = pinfo_tool.PinfoTool()

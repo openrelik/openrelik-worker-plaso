@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     software-properties-common \
     python3-pip \
     python3-poetry \
+    p7zip-full \
     gpg-agent \
     wget \
     tzdata \

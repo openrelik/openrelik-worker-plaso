@@ -1,25 +1,19 @@
 [project]
-authors = [
-    {name = "Johan Berggren", email = "jberggren@gmail.com"},
-]
+authors = [{ name = "Johan Berggren", email = "jberggren@gmail.com" }]
 requires-python = ">=3.11,<4.0"
 dependencies = [
     "celery[redis]<6.0.0,>=5.4.0",
-    "openrelik-worker-common<1.0.0,>=0.16.0",
-    "openrelik-common>=0.7.0,<1.0.0",
+    "openrelik-worker-common<1.0.0,>=0.17.1",
+    "openrelik-common>=0.7.7,<1.0.0",
     "debugpy>=1.8.7,<2.0.0",
 ]
 name = "openrelik-worker-extraction"
-version = "0.4.0"
+version = "0.5.0"
 description = "log2timeline and psort"
 readme = "README.md"
 
 [dependency-groups]
-test = [
-    "pytest",
-    "pytest-cov<6.0.0,>=5.0.0",
-    "pytest-mock>=3.14.0",
-]
+test = ["pytest", "pytest-cov<6.0.0,>=5.0.0", "pytest-mock>=3.14.0"]
 
 [tool.uv]
 default-groups = []

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+from pathlib import Path
 import shutil
 import subprocess
 import tempfile
@@ -115,26 +116,23 @@ def _output_display_name(task_config: dict | None) -> str | None:
     if not task_config:
         return None
 
+    # Standardize input: extract the first element if it's a list
     output_file_name = task_config.get("output_file_name")
     if isinstance(output_file_name, list):
         output_file_name = output_file_name[0] if output_file_name else None
-    if output_file_name is None:
+
+    if not output_file_name:
         return None
 
-    display_name = str(output_file_name).strip()
-    if not display_name:
+    # Pathlib handles slashes and name extraction automatically
+    path_obj = Path(str(output_file_name).strip())
+    base_name = path_obj.stem.strip()
+
+    # Validate the resulting filename
+    if not base_name or base_name in {".", ".."}:
         return None
 
-    display_name = display_name.replace("\\", "/").split("/")[-1]
-    if display_name in {".", ".."}:
-        return None
-
-    display_name = os.path.splitext(display_name)[0]
-    if not display_name or display_name in {".", ".."}:
-        return None
-
-    return f"{display_name}.plaso"
-
+    return f"{base_name}.plaso"
 
 @signals.task_prerun.connect
 def on_task_prerun(sender, task_id, task, args, kwargs, **_):

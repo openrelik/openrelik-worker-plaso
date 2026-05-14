@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+from pathlib import Path
 import shutil
 import subprocess
 import tempfile
@@ -90,10 +91,18 @@ TASK_METADATA = {
             "required": False,
         },
         {
+            "name": "output_file_name",
+            "label": "Output file name",
+            "description": "Optional custom name for the output Plaso file.",
+            "type": "text",
+            "required": False,
+        },
+        {
             "name": "extract-single-zip",
             "label": "Extract single ZIP input",
             "description": "Select if single ZIP input should be extracted (slow $MFT parsing workaround)",
             "type": "checkbox",
+            "required": False,
         },
     ],
 }
@@ -101,6 +110,29 @@ TASK_METADATA = {
 log_root = Logger()
 logger = log_root.get_logger(__name__, get_task_logger(__name__))
 
+
+def _output_display_name(task_config: dict | None) -> str | None:
+    """Return the configured Plaso output display name if it was set."""
+    if not task_config:
+        return None
+
+    # Standardize input: extract the first element if it's a list
+    output_file_name = task_config.get("output_file_name")
+    if isinstance(output_file_name, list):
+        output_file_name = output_file_name[0] if output_file_name else None
+
+    if not output_file_name:
+        return None
+
+    # Pathlib handles slashes and name extraction automatically
+    path_obj = Path(str(output_file_name).strip())
+    base_name = path_obj.stem.strip()
+
+    # Validate the resulting filename
+    if not base_name or base_name in {".", ".."}:
+        return None
+
+    return f"{base_name}.plaso"
 
 @signals.task_prerun.connect
 def on_task_prerun(sender, task_id, task, args, kwargs, **_):
@@ -139,7 +171,15 @@ def log2timeline(
     output_files = []
     temp_dir = None
 
-    if len(input_files) == 1:
+    configured_display_name = _output_display_name(task_config)
+
+    if configured_display_name:
+        output_file = create_output_file(
+            output_path,
+            display_name=configured_display_name,
+            data_type="plaso:log2timeline:plaso_storage",
+        )
+    elif len(input_files) == 1:
         output_file = create_output_file(
             output_path,
             display_name=f"{input_files[0].get('display_name')}.plaso",

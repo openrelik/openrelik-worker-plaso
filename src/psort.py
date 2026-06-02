@@ -47,8 +47,32 @@ TASK_METADATA = {
             "items": sorted(output_formats_available),
             "required": False,
         },
+        {
+            "name": "filter",
+            "label": "Event filter expression",
+            "description": (
+                "Optional psort event filter applied to this run. Leave empty to "
+                "process the whole storage file."
+            ),
+            "type": "text",
+            "value": "",
+            "required": False,
+        },
+        {
+            "name": "register_in_db",
+            "label": "Register output files in the database",
+            "description": (
+                "When enabled (default), each psort output file is registered "
+                "in the OpenRelik database and appears in the UI. Disable for "
+                "intermediate runs that only feed downstream tasks."
+            ),
+            "type": "switch",
+            "value": True,
+            "required": False,
+        },
     ],
 }
+
 
 log_root = Logger()
 logger = log_root.get_logger(__name__, get_task_logger(__name__))
@@ -89,7 +113,7 @@ def psort(
 
     input_files = get_input_files(pipe_result, input_files or [])
     output_files = []
-    command_string = ""
+    command_strings = []
 
     telemetry.add_attribute_to_current_span("input_files", input_files)
     telemetry.add_attribute_to_current_span("task_config", task_config)
@@ -100,11 +124,17 @@ def psort(
     if task_config and task_config.get("output_format"):
         output_extension = task_config["output_format"]
 
+    cfg = task_config or {}
+    register_in_db = cfg.get("register_in_db", True)
+    event_filter = (cfg.get("filter") or "").strip()
+
     for input_file in input_files:
         output_file = create_output_file(
             output_path,
             display_name=f"{input_file.get('display_name')}.{output_extension}",
             data_type=f"plaso:psort:{output_extension}",
+            original_path=(input_file.get("original_path") or input_file.get("path")),
+            register_in_db=register_in_db,
         )
         status_file = create_output_file(output_path, extension="status")
 
@@ -120,13 +150,15 @@ def psort(
             "-w",
             output_file.path,
         ]
-        if task_config and task_config.get("output_format"):
-            command.extend(["-o", task_config["output_format"]])
+        if cfg.get("output_format"):
+            command.extend(["-o", cfg["output_format"]])
         command.append(input_file.get("path"))
+        # The event filter, if any, is the final positional argument
+        if event_filter:
+            command.append(event_filter)
 
-        command_string = " ".join(command)
+        command_strings.append(" ".join(command))
 
-        # Send initial status event to indicate task start
         self.send_event("task-progress", data={})
 
         logger.info(f"Starting {' '.join(command)}")
@@ -139,6 +171,7 @@ def psort(
         )
         while process.poll() is None:
             if not os.path.exists(status_file.path):
+                time.sleep(2)
                 continue
             with open(status_file.path, "r") as f:
                 status_dict = {}
@@ -152,10 +185,28 @@ def psort(
         if process.stderr:
             process_plaso_cli_logs(process.stderr.read(), logger)
 
-    output_files.append(output_file.to_dict())
+        # A filter that matches no events leaves no output file on disk (or an
+        # empty one), and a non-zero exit means psort failed. In either case
+        # the file must not be reported downstream.
+        returncode = process.poll()
+        try:
+            produced_output = os.path.getsize(output_file.path) > 0
+        except OSError:
+            produced_output = False
+
+        if returncode == 0 and produced_output:
+            output_files.append(output_file.to_dict())
+        else:
+            logger.info(
+                "Skipping empty/failed psort run for %s "
+                "(returncode=%s, output_present=%s)",
+                input_file.get("display_name"),
+                returncode,
+                produced_output,
+            )
 
     return create_task_result(
         output_files=output_files,
         workflow_id=workflow_id,
-        command=command_string,
+        command="\n".join(command_strings),
     )

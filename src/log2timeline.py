@@ -95,6 +95,18 @@ TASK_METADATA = {
             "description": "Select if single ZIP input should be extracted (slow $MFT parsing workaround)",
             "type": "checkbox",
         },
+        {
+            "name": "register_in_db",
+            "label": "Register output file in the database",
+            "description": (
+                "When enabled (default), the produced .plaso storage file is "
+                "registered in the OpenRelik database and appears in the UI. "
+                "Disable for intermediate runs that only feed downstream tasks."
+            ),
+            "type": "switch",
+            "value": True,
+            "required": False,
+        },
     ],
 }
 
@@ -138,18 +150,25 @@ def log2timeline(
     input_files = get_input_files(pipe_result, input_files or [])
     output_files = []
     temp_dir = None
+    register_in_db = (task_config or {}).get("register_in_db", True)
 
     if len(input_files) == 1:
+        upstream_original = (
+            input_files[0].get("original_path") or input_files[0].get("path")
+        )
         output_file = create_output_file(
             output_path,
             display_name=f"{input_files[0].get('display_name')}.plaso",
             data_type="plaso:log2timeline:plaso_storage",
+            original_path=upstream_original,
+            register_in_db=register_in_db,
         )
     else:
         output_file = create_output_file(
             output_path,
             extension="plaso",
             data_type="plaso:log2timeline:plaso_storage",
+            register_in_db=register_in_db,
         )
     status_file = create_output_file(output_path, extension="status")
 
